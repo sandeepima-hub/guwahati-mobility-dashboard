@@ -150,4 +150,38 @@ CORRIDORS = {
             {"id": "NH_12", "name": "Jalukbari",         "lat": 26.15520, "lng": 91.67640},
         ],
     },
+
+    "BASISTHA_DISPUR": {
+        "label":              "Basistha–Dispur",
+        "description":        "Basistha Chariali to Dispur",
+        "direction_inbound":  "SOUTH_TO_NORTH",
+        "direction_outbound": "NORTH_TO_SOUTH",
+        "length_km":          3.8,
+        # Source: ASTC GPS geofence file (ROute_GPS.xlsx)
+        # Connector route: NH37 at Basistha → GS Road at Dispur
+        "stops": [
+            {"id": "BD_01", "name": "Basistha Chariali", "lat": 26.11268, "lng": 91.79785},
+            {"id": "BD_02", "name": "Survey",            "lat": 26.13379, "lng": 91.79302},
+            {"id": "BD_03", "name": "Wireless",          "lat": 26.13315, "lng": 91.79349},
+            {"id": "BD_04", "name": "Last Gate",         "lat": 26.13869, "lng": 91.79032},
+            {"id": "BD_05", "name": "Dispur",            "lat": 26.14412, "lng": 91.79229},
+        ],
+    },
+
+    "GANESHGURI_GAMESVLG": {
+        "label":              "Ganeshguri–Games Village",
+        "description":        "Ganeshguri to Games Village",
+        "direction_inbound":  "NORTH_TO_SOUTH",
+        "direction_outbound": "SOUTH_TO_NORTH",
+        "length_km":          4.2,
+        # Source: ASTC GPS geofence file (ROute_GPS.xlsx)
+        # Connector route: GS Road at Ganeshguri → NH37 at Games Village
+        "stops": [
+            {"id": "GG_01", "name": "Ganeshguri",       "lat": 26.14694, "lng": 91.78870},
+            {"id": "GG_02", "name": "Rajdhani Mosque",  "lat": 26.14167, "lng": 91.78649},
+            {"id": "GG_03", "name": "Hatigaon Chariali","lat": 26.12927, "lng": 91.78633},
+            {"id": "GG_04", "name": "Bhetapara",        "lat": 26.12039, "lng": 91.78710},
+            {"id": "GG_05", "name": "Games Village",    "lat": 26.11148, "lng": 91.78925},
+        ],
+    },
 }

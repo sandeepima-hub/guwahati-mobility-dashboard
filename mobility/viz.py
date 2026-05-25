@@ -96,7 +96,7 @@ def railway_dashboard(
     if sub.empty:
         raise ValueError(f"No data for {corridor_key} {peak_key}.")
 
-    sub["timeslot"] = pd.to_datetime(sub["departure_iso"]).dt.strftime("%H:%M")
+    sub["timeslot"] = pd.to_datetime(sub["departure_iso"], format="ISO8601").dt.strftime("%H:%M")
     sub["segment_label"] = sub["from_stop"] + " → " + sub["to_stop"]
 
     pivot = sub.pivot_table(
@@ -193,7 +193,7 @@ def spacetime_diagram(
     if sub.empty:
         raise ValueError(f"No data for {corridor_key} {peak_key}.")
 
-    sub["timeslot"] = pd.to_datetime(sub["departure_iso"]).dt.strftime("%H:%M")
+    sub["timeslot"] = pd.to_datetime(sub["departure_iso"], format="ISO8601").dt.strftime("%H:%M")
 
     # Build cumulative distance axis
     seg_dist = (
