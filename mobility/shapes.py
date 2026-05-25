@@ -34,15 +34,19 @@ DISPLAY_ROAD_TYPES = {"1", "2"}   # stored as strings in the shapefile
 # ── Corridor bounding boxes (WGS84) ──────────────────────────────────────────
 # Generous buffers around each corridor to clip the road network
 _CORRIDOR_BBOX = {
-    "GS_ROAD": box(91.660, 26.110, 91.835, 26.205),   # Jalukbari to Khanapara
-    "NH37":    box(91.650, 26.095, 91.845, 26.160),   # Jalukbari to Khanapara NH alignment
+    "GS_ROAD":             box(91.660, 26.110, 91.835, 26.205),
+    "NH37":                box(91.650, 26.095, 91.845, 26.160),
+    "BASISTHA_DISPUR":     box(91.785, 26.110, 91.805, 26.150),
+    "GANESHGURI_GAMESVLG": box(91.782, 26.108, 91.795, 26.155),
 }
 
 # ── Named road filters for each corridor ─────────────────────────────────────
 _CORRIDOR_ROAD_NAMES = {
-    "GS_ROAD": ["G.S. ROAD", "GS ROAD", "GANESHGURI FLY OVER"],
-    "NH37":    ["N.H. - 37", "NATIONAL HIGHWAY 37", "NH_SERVICE LANE",
-                "NATIONAL HIGHWAY-37", "NH_FLYOVER"],
+    "GS_ROAD":             ["G.S. ROAD", "GS ROAD", "GANESHGURI FLY OVER"],
+    "NH37":                ["N.H. - 37", "NATIONAL HIGHWAY 37", "NH_SERVICE LANE",
+                            "NATIONAL HIGHWAY-37", "NH_FLYOVER"],
+    "BASISTHA_DISPUR":     ["BASISTHA", "SURVEY", "DISPUR"],
+    "GANESHGURI_GAMESVLG": ["HATIGAON", "BHETAPARA", "GAMES VILLAGE"],
 }
 
 
