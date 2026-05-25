@@ -1,0 +1,21 @@
+# Secrets — never commit
+.streamlit/secrets.toml
+gcs_key.json
+
+# Local cache and exports
+cache/
+audit_exports/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+env/
+
+# Mac
+.DS_Store
+*.pdf
+*.xlsx
+*.jpg
+~$*

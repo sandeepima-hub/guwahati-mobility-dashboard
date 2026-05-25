@@ -1,0 +1,12 @@
+googlemaps>=4.10.0
+pandas>=2.0.0
+numpy>=1.24.0
+plotly>=5.20.0
+geopandas>=0.14.0
+shapely>=2.0.0
+folium>=0.16.0
+streamlit>=1.35.0
+streamlit-folium>=0.20.0
+google-cloud-storage>=2.16.0
+google-auth>=2.29.0
+openpyxl>=3.1.0
