@@ -50,6 +50,10 @@ def _load_segment_summary():
 def _load_raw():
     return download_csv(config.GCS_BUCKET, "raw_travel_times.csv")
 
+@st.cache_data(ttl=300)
+def _load_historical():
+    return download_csv(config.GCS_BUCKET, "historical_kpis.csv")
+
 def _tti_hex(v):
     if v is None or (isinstance(v, float) and pd.isna(v)): return "#555"
     if v >= 2.0: return "#ef4444"
@@ -279,6 +283,119 @@ def render_io(raw_df, corridor):
     except Exception as e:
         st.info(f"Chart: {e}")
 
+
+# ── Trend Summary ─────────────────────────────────────────────────────────────────────────────
+
+def render_trend_summary(hist_df, corridor):
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+    st.subheader("Trend Summary")
+
+    if hist_df is None or hist_df.empty:
+        st.info("No historical data yet. Trends will appear after multiple collection runs.")
+        return
+
+    label = config.CORRIDORS[corridor]["label"]
+    sub = hist_df[hist_df["Corridor"] == label].copy()
+
+    if sub.empty:
+        st.info(f"No historical data for {label} yet.")
+        return
+
+    sub["Date"] = pd.to_datetime(sub["Date"])
+    sub = sub.sort_values("Date")
+
+    am = sub[sub["Peak"] == "AM"]
+    pm = sub[sub["Peak"] == "PM"]
+
+    # ── PTI trend ──────────────────────────────────────────
+    st.markdown("#### Planning Time Index over Time")
+    fig_pti = go.Figure()
+    if not am.empty:
+        fig_pti.add_trace(go.Scatter(
+            x=am["Date"], y=am["Planning Time Index (PTI)"],
+            name="AM Peak", mode="lines+markers",
+            line=dict(color="#ff6b2b", width=2),
+            marker=dict(size=6),
+        ))
+    if not pm.empty:
+        fig_pti.add_trace(go.Scatter(
+            x=pm["Date"], y=pm["Planning Time Index (PTI)"],
+            name="PM Peak", mode="lines+markers",
+            line=dict(color="#29b6f6", width=2),
+            marker=dict(size=6),
+        ))
+    fig_pti.add_hline(
+        y=config.PTI_AUDIT_THRESHOLD,
+        line_dash="dash", line_color="red",
+        annotation_text=f"Audit threshold {config.PTI_AUDIT_THRESHOLD}",
+        annotation_position="top right",
+    )
+    fig_pti.update_layout(
+        height=300, xaxis_title="Date", yaxis_title="PTI",
+        legend=dict(orientation="h"),
+        margin=dict(l=20, r=20, t=20, b=20),
+    )
+    st.plotly_chart(fig_pti, use_container_width=True)
+
+    # ── Speed + Delay trends ──────────────────────────────────
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("#### Average Speed (km/h)")
+        fig_spd = go.Figure()
+        if not am.empty:
+            fig_spd.add_trace(go.Scatter(x=am["Date"], y=am["Average Speed (km/h)"],
+                name="AM", mode="lines+markers", line=dict(color="#ff6b2b", width=2)))
+        if not pm.empty:
+            fig_spd.add_trace(go.Scatter(x=pm["Date"], y=pm["Average Speed (km/h)"],
+                name="PM", mode="lines+markers", line=dict(color="#29b6f6", width=2)))
+        fig_spd.add_hline(y=20, line_dash="dash", line_color="orange",
+            annotation_text="20 km/h norm")
+        fig_spd.update_layout(height=250, margin=dict(l=20,r=20,t=20,b=20),
+            legend=dict(orientation="h"))
+        st.plotly_chart(fig_spd, use_container_width=True)
+
+    with c2:
+        st.markdown("#### Corridor Delay (min)")
+        fig_dly = go.Figure()
+        if not am.empty:
+            fig_dly.add_trace(go.Scatter(x=am["Date"], y=am["Total Corridor Delay (min)"],
+                name="AM", mode="lines+markers", line=dict(color="#ff6b2b", width=2)))
+        if not pm.empty:
+            fig_dly.add_trace(go.Scatter(x=pm["Date"], y=pm["Total Corridor Delay (min)"],
+                name="PM", mode="lines+markers", line=dict(color="#29b6f6", width=2)))
+        fig_dly.add_hline(y=10, line_dash="dash", line_color="orange",
+            annotation_text="10 min flag")
+        fig_dly.update_layout(height=250, margin=dict(l=20,r=20,t=20,b=20),
+            legend=dict(orientation="h"))
+        st.plotly_chart(fig_dly, use_container_width=True)
+
+    # ── Summary stats ────────────────────────────────────────────
+    st.markdown("#### Statistical Summary")
+    summary_rows = []
+    for peak_key, peak_df, peak_label in [("AM", am, "AM Peak"), ("PM", pm, "PM Peak")]:
+        if peak_df.empty:
+            continue
+        pti_col = "Planning Time Index (PTI)"
+        spd_col = "Average Speed (km/h)"
+        dly_col = "Total Corridor Delay (min)"
+        summary_rows.append({
+            "Peak":           peak_label,
+            "Runs":           len(peak_df),
+            "Mean PTI":       round(peak_df[pti_col].mean(), 3),
+            "Max PTI":        round(peak_df[pti_col].max(), 3),
+            "Days PTI > 1.6": int((peak_df[pti_col] > 1.6).sum()),
+            "Mean Speed":     round(peak_df[spd_col].mean(), 1),
+            "Min Speed":      round(peak_df[spd_col].min(), 1),
+            "Mean Delay":     round(peak_df[dly_col].mean(), 1),
+            "Max Delay":      round(peak_df[dly_col].max(), 1),
+        })
+    if summary_rows:
+        st.dataframe(pd.DataFrame(summary_rows), use_container_width=True, hide_index=True)
+        st.caption(f"Based on {len(sub)} collection runs · {sub['Date'].min().strftime('%d %b')} to {sub['Date'].max().strftime('%d %b %Y')}")
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -328,6 +445,12 @@ def main():
         st.divider()
         st.subheader("Full KPI Table")
         st.dataframe(kpi_df, use_container_width=True, hide_index=True)
+
+    # Trend summary
+    hist_df = _load_historical()
+    if hist_df is not None:
+        st.divider()
+        render_trend_summary(hist_df, corridor)
 
     st.caption("Google Maps Distance Matrix API · GS Road 34 stops · NH37 12 stops · HCM 6th Ed. · MORTH 2018 VOT")
 

@@ -29,6 +29,7 @@ import os
 import sys
 from datetime import datetime, timedelta
 
+import pandas as pd
 import googlemaps
 
 from mobility import collect, kpi, viz, export
@@ -156,6 +157,18 @@ def main() -> None:
                 merged = new_df
             storage.upload_csv(GCS_BUCKET, fname, merged)
         print("  ✓ CSVs merged and uploaded")
+
+        # ── Append to historical KPI log ──────────────────────────────────────
+        kpi_with_date = kpi_table.copy()
+        kpi_with_date.insert(0, "Date", ref_date.strftime("%Y-%m-%d"))
+        kpi_with_date.insert(1, "Run_IST", datetime.now().strftime("%Y-%m-%d %H:%M"))
+        existing_hist = storage.download_csv(GCS_BUCKET, "historical_kpis.csv")
+        if existing_hist is not None and not existing_hist.empty:
+            historical = pd.concat([existing_hist, kpi_with_date], ignore_index=True)
+        else:
+            historical = kpi_with_date
+        storage.upload_csv(GCS_BUCKET, "historical_kpis.csv", historical)
+        print(f"  ✓ Historical log updated ({len(historical)} total runs)")
 
         for stem, fig in figures.items():
             html = fig.to_html(include_plotlyjs="cdn", full_html=True)
